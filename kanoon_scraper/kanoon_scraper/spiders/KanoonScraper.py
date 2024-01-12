@@ -1,5 +1,7 @@
 import scrapy
 import redis
+from kanoon_scraper.kanoon_scraper.items import CaseItem
+
 from urllib.parse import urlparse, urljoin
 import re
 import snappy
@@ -12,9 +14,13 @@ kanoon_judgements_maps = "kanoon_judgements_maps"
 
 # don't change order
 kanoon_judgement_schema = ['docsource_main', 'doc_title', 'doc_bench', 'doc_author', 'judgement']
+
+
 class IndianKanoonSpider(scrapy.Spider):
     name = "indiankanoon"
     allowed_domains = ['indiankanoon.org']
+
+    # TODO move this to settings.py
     custom_settings = {
         'DOWNLOAD_DELAY': 6,
         'CONCURRENT_REQUESTS': 1,
@@ -113,7 +119,7 @@ class IndianKanoonSpider(scrapy.Spider):
             print(f'number of citations  {len(cited_docs)}')
 
     def parse(self, response):
-
+        # TODO move this to items.py and store redis connection there
         try:
             parsed_url = urlparse(response.url)
             doc_number = parsed_url.path.split("/")[-2]
@@ -121,9 +127,11 @@ class IndianKanoonSpider(scrapy.Spider):
             for judgment_div in response.css('div.judgments'):
 
                 text_content = ''.join(judgment_div.css('p::text').getall())
+                #TODO move all the cleaning tasks to the pipelines.py
                 text_content = re.sub(r'\n\s*\n*', '\n', text_content).encode('utf-8')
                 compressed_bytes = zlib.compress(text_content)
-
+                item = CaseItem()
+                item["case_source"] = judgment_div.css('div.docsource_main::text').get(default='EMPTY')
                 item = {
                     kanoon_judgement_schema[0]: judgment_div.css('div.docsource_main::text').get(default='EMPTY'),
                     kanoon_judgement_schema[1]: judgment_div.css('div.doc_title::text').get(default='EMPTY'),
@@ -134,7 +142,7 @@ class IndianKanoonSpider(scrapy.Spider):
                 # Decompress the compressed bytes
                 # decompressed_bytes = zlib.decompress(compressed_bytes)
                 # Convert the decompressed bytes back to text
-                #decompressed_text = decompressed_bytes.decode('utf-8')
+                # decompressed_text = decompressed_bytes.decode('utf-8')
 
                 # Handle empty text or non-existent fields
                 item = {k: v if v is not None else 'EMPTY' for k, v in item.items()}

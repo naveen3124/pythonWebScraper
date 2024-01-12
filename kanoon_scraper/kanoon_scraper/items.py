@@ -6,7 +6,9 @@
 import scrapy
 
 
-class KanoonScraperItem(scrapy.Item):
-    # define the fields for your item here like:
-    # name = scrapy.Field()
-    pass
+class CaseItem(scrapy.Item):
+    case_source = scrapy.Field()
+    case_author = scrapy.Field()
+    case_bench = scrapy.Field()
+    case_judgement = scrapy.Field()
+    case_title = scrapy.Field()
