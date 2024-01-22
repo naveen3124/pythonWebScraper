@@ -7,6 +7,9 @@
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
+# Set the logging level for the specific component to WARNING
+LOG_LEVEL = 'WARNING'
+
 BOT_NAME = "kanoon_scraper"
 
 SPIDER_MODULES = ["kanoon_scraper.spiders"]

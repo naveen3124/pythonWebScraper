@@ -5,12 +5,10 @@
 
 
 # useful for handling different item types with a single interface
-from itemadapter import ItemAdapter
 
-import redis
-from scrapy_redis.pipelines import RedisPipeline
 import json
-import logging
+
+from scrapy_redis.pipelines import RedisPipeline
 
 
 class KanoonScraperItemPipeline(RedisPipeline):

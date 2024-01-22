@@ -1,12 +1,12 @@
 import base64
-
-import scrapy
-import redis
-from kanoon_scraper.items import CaseItem, CasesRefererItem, CasesReferredItem
-
-from urllib.parse import urlparse, urljoin
 import re
 import zlib
+from urllib.parse import urlparse
+
+import redis
+import scrapy
+
+from kanoon_scraper.items import CaseItem, CasesRefererItem, CasesReferredItem
 
 id_to_doc_map = "id_to_doc_map"
 id_to_referer_map = "id_to_referer_map"
@@ -81,7 +81,7 @@ class IndianKanoonSpider(scrapy.Spider):
 
         if next_url is None:
             # self.redis_connection.hset(doc_to_cited_doc_idmap, 'your_field', ','.join(cited_docs))
-            print(f'number of citations  {len(cited_docs)}')
+            # print(f'number of citations  {len(cited_docs)}')
             item = CasesRefererItem()
             item["stored_hset_name"] = id_to_referer_map
             item['case_id'] = doc_number
@@ -109,7 +109,7 @@ class IndianKanoonSpider(scrapy.Spider):
 
         if next_url is None:
             # self.redis_connection.hset(doc_to_cited_doc_idmap, 'your_field', ','.join(cited_docs))
-            print(f'number of citations  {len(cited_docs)}')
+            # print(f'number of citations  {len(cited_docs)}')
             item = CasesReferredItem()
             item["stored_hset_name"] = id_to_referred_map
             item['case_id'] = doc_number
@@ -136,11 +136,11 @@ class IndianKanoonSpider(scrapy.Spider):
                 item["case_judgement"] = base64.b64encode(compressed_bytes).decode('utf-8')
 
                 # Decompress the compressed bytes
-                # decoded_data = base64.b64decode(compressed_data_base64)
+                # decoded_data = base64.b64decode(item["case_judgement"])
                 # decompressed_bytes = zlib.decompress(compressed_bytes)
                 # Convert the decompressed bytes back to text
                 # decompressed_text = decompressed_bytes.decode('utf-8')
-
+                # print(decompressed_text)
             # Extract information from the current page
             yield item
 
@@ -149,8 +149,8 @@ class IndianKanoonSpider(scrapy.Spider):
             cited_by_href = covers_div.css('span.citetop a[href*="citedby"]::attr(href)').extract_first()
 
             # Now you can use 'cites_href' and 'cited_by_href'
-            print("Cites Href:", cites_href)
-            print("Cited By Href:", cited_by_href)
+            # print("Cites Href:", cites_href)
+            # print("Cited By Href:", cited_by_href)
             cited_docs = []
             if cited_by_href:
                 full_url = response.urljoin(cited_by_href)
@@ -161,6 +161,7 @@ class IndianKanoonSpider(scrapy.Spider):
                 full_url = response.urljoin(cites_href)
                 yield scrapy.Request(url=full_url, callback=self.parse_view_all_cites,
                                      cb_kwargs={'doc_number': doc_number, 'cited_docs': cited_by_docs})
+            print(f" scraped doc_number {doc_number}")
 
         except redis.exceptions.RedisError as e:
             self.log(f"Redis error: {e}")
