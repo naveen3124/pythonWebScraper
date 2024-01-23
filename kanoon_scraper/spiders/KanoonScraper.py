@@ -1,6 +1,7 @@
 import base64
 import re
 import zlib
+from datetime import datetime
 from urllib.parse import urlparse
 
 import redis
@@ -75,12 +76,10 @@ class IndianKanoonSpider(scrapy.Spider):
 
         if next_url:
             next_url = response.urljoin(next_url)
-            # print(f'Next URL: {next_url}')
             yield scrapy.Request(url=next_url, callback=self.parse_view_all_cites,
                                  cb_kwargs={'doc_number': doc_number, 'cited_docs': cited_docs})
 
         if next_url is None:
-            # self.redis_connection.hset(doc_to_cited_doc_idmap, 'your_field', ','.join(cited_docs))
             # print(f'number of citations  {len(cited_docs)}')
             item = CasesRefererItem()
             item["stored_hset_name"] = id_to_referer_map
@@ -103,12 +102,10 @@ class IndianKanoonSpider(scrapy.Spider):
 
         if next_url:
             next_url = response.urljoin(next_url)
-            # print(f'Next URL: {next_url}')
             yield scrapy.Request(url=next_url, callback=self.parse_view_all_cites,
                                  cb_kwargs={'doc_number': doc_number, 'cited_docs': cited_docs})
 
         if next_url is None:
-            # self.redis_connection.hset(doc_to_cited_doc_idmap, 'your_field', ','.join(cited_docs))
             # print(f'number of citations  {len(cited_docs)}')
             item = CasesReferredItem()
             item["stored_hset_name"] = id_to_referred_map
@@ -123,25 +120,38 @@ class IndianKanoonSpider(scrapy.Spider):
             item = CaseItem()
             item["case_id"] = doc_number
             item["stored_hset_name"] = id_to_doc_map
+            soup = scrapy.Selector(response).xpath('//div[@class="judgments"]')
+            if soup is None:
+                return
+            item["case_author"] = soup.xpath('.//h3[@class="doc_author"]/text()').get()
+            item["case_bench"] = soup.xpath('.//h3[@class="doc_bench"]/text()').get()
+            item["case_details"] = soup.xpath('//pre[@id="pre_1"]/text()').get()
+            item["case_source"] = soup.xpath('.//h2[@class="docsource_main"]/text()').get()
+            item["case_title"] = soup.xpath('.//h2[@class="doc_title"]/text()').get()
 
-            for judgment_div in response.css('div.judgments'):
-                text_content = ''.join(judgment_div.css('p::text').getall())
-                # TODO move all the cleaning tasks to the pipelines.py
-                text_content = re.sub(r'\n\s*\n*', '\n', text_content).encode('utf-8')
-                compressed_bytes = zlib.compress(text_content)
-                item["case_source"] = judgment_div.css('h2.docsource_main::text').get(default='EMPTY')
-                item["case_title"] = judgment_div.css('h2.doc_title::text').get(default='EMPTY')
-                item["case_bench"] = judgment_div.css('div.doc_bench::text').get(default='EMPTY')
-                item["case_author"] = judgment_div.css('div.doc_author::text').get(default='EMPTY')
-                item["case_judgement"] = base64.b64encode(compressed_bytes).decode('utf-8')
+            paragraphs = soup.xpath('.//p[@id]')
 
-                # Decompress the compressed bytes
-                # decoded_data = base64.b64decode(item["case_judgement"])
-                # decompressed_bytes = zlib.decompress(compressed_bytes)
-                # Convert the decompressed bytes back to text
-                # decompressed_text = decompressed_bytes.decode('utf-8')
-                # print(decompressed_text)
-            # Extract information from the current page
+            # Extract information and store in a list
+            paragraphs_info = []
+            for paragraph in paragraphs:
+                paragraph_id = paragraph.xpath('@id').get()
+                data_structure = paragraph.xpath('@data-structure').get()
+                content = paragraph.xpath('string(.)').get()
+                paragraphs_info.append(f"Par_ID: {paragraph_id}, "
+                                       f"Data_Structure: {data_structure}, "
+                                       f"Content: {content.strip()}\n")
+
+            text_content = ''.join(paragraphs_info).encode('utf-8')
+            compressed_bytes = zlib.compress(text_content)
+            item["case_judgement"] = base64.b64encode(compressed_bytes).decode('utf-8')
+
+            # Decompress the compressed bytes
+            # decoded_data = base64.b64decode(item["case_judgement"])
+            # decompressed_bytes = zlib.decompress(decoded_data)
+            # Convert the decompressed bytes back to text
+            # decompressed_text = decompressed_bytes.decode('utf-8')
+            # print(decompressed_text)
+
             yield item
 
             covers_div = response.css('div.covers')
@@ -165,3 +175,8 @@ class IndianKanoonSpider(scrapy.Spider):
 
         except redis.exceptions.RedisError as e:
             self.log(f"Redis error: {e}")
+
+    def close(self, reason):
+        # Print the current time at the end of crawling
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.log(f"End of Crawling - Current Time: {current_time}")

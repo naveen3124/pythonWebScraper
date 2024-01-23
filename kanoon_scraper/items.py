@@ -13,6 +13,7 @@ class CaseItem(scrapy.Item):
     case_bench = scrapy.Field()
     case_judgement = scrapy.Field()
     case_title = scrapy.Field()
+    case_details = scrapy.Field()
     stored_hset_name = scrapy.Field()
 
 class CasesRefererItem(scrapy.Item):
