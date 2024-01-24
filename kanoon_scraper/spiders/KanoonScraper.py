@@ -40,7 +40,7 @@ class IndianKanoonSpider(scrapy.Spider):
     def start_requests(self):
         # Generate dynamic URLs using the generator function
         current_doc_id = read_counter()
-        dynamic_urls_generator = self.url_generator(current_doc_id, 10)  # Range from 1 to 10,000,000
+        dynamic_urls_generator = self.url_generator(current_doc_id, 3)  # Range from 1 to 10,000,000
         for url in dynamic_urls_generator:
             yield scrapy.Request(url=url, callback=self.parse)
             current_doc_id += 1
@@ -128,7 +128,10 @@ class IndianKanoonSpider(scrapy.Spider):
             item["case_source"] = soup.xpath('.//h2[@class="docsource_main"]/text()').get()
             item["case_title"] = soup.xpath('.//h2[@class="doc_title"]/text()').get()
             case_details = soup.xpath('//pre[@id="pre_1"]/text()').get()
-            item["case_details"] = re.sub(r'\s+', ' ', case_details).strip()
+            if case_details is not None:
+                item["case_details"] = re.sub(r'\s+', ' ', case_details).strip()
+            else:
+                item["case_details"] = "EMPTY"
 
             paragraphs = soup.xpath('.//p[@id]')
 
