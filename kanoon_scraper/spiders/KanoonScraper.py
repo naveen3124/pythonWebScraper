@@ -40,7 +40,7 @@ class IndianKanoonSpider(scrapy.Spider):
     def start_requests(self):
         # Generate dynamic URLs using the generator function
         current_doc_id = read_counter()
-        dynamic_urls_generator = self.url_generator(current_doc_id, 3)  # Range from 1 to 10,000,000
+        dynamic_urls_generator = self.url_generator(current_doc_id, 20)  # Range from 1 to 10,000,000
         for url in dynamic_urls_generator:
             yield scrapy.Request(url=url, callback=self.parse)
             current_doc_id += 1
@@ -146,7 +146,7 @@ class IndianKanoonSpider(scrapy.Spider):
                                        f"Content: {content.strip()}\n")
 
             text_content = ''.join(paragraphs_info).encode('utf-8')
-            if len(text_content) < 2000:
+            if len(text_content) < 100:
                 return
             compressed_bytes = zlib.compress(text_content)
             item["case_judgement"] = base64.b64encode(compressed_bytes).decode('utf-8')

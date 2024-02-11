@@ -12,6 +12,8 @@ LOG_LEVEL = 'WARNING'
 
 BOT_NAME = "kanoon_scraper"
 
+REDIS_LUCENE_CHANNEL_NAME = "channel1"
+
 SPIDER_MODULES = ["kanoon_scraper.spiders"]
 NEWSPIDER_MODULE = "kanoon_scraper.spiders"
 
@@ -19,7 +21,7 @@ ITEM_PIPELINES = {
     'kanoon_scraper.pipelines.KanoonScraperItemPipeline': 100,
 }
 
-DOWNLOAD_DELAY = 6
+DOWNLOAD_DELAY = 2
 CONCURRENT_REQUESTS = 1
 DEPTH_LIMIT = 100
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
