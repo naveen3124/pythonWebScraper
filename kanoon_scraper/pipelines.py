@@ -34,11 +34,12 @@ class KanoonScraperItemPipeline(RedisPipeline):
         # logging.debug(f"Processing item: {item}")
         item_key = str(item['case_id'])
         serialized_data = json.dumps(item.__dict__)
-        self.check_subscribers(spider)
+        #self.check_subscribers(spider)
         self.server.hset(item['stored_hset_name'], key=item_key, value=serialized_data)
-        if item['stored_hset_name'] == "id_to_doc_map":
-            self.server.publish(REDIS_LUCENE_CHANNEL_NAME, serialized_data)
+        #if item['stored_hset_name'] == "id_to_doc_map":
+            #self.server.publish(REDIS_LUCENE_CHANNEL_NAME, serialized_data)
         return item
 
     def close_spider(self, spider):
-        self.server.publish(REDIS_LUCENE_CHANNEL_NAME, "STOP_LISTENING")
+        #self.server.publish(REDIS_LUCENE_CHANNEL_NAME, "STOP_LISTENING")
+        return

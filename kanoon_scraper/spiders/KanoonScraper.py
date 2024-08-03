@@ -19,7 +19,7 @@ def read_counter(filename='counter.txt'):
         with open(filename, 'r') as file:
             return int(file.read())
     except FileNotFoundError:
-        return 0
+        return 1
 
 
 def write_counter(counter, filename='counter.txt'):
@@ -40,7 +40,7 @@ class IndianKanoonSpider(scrapy.Spider):
     def start_requests(self):
         # Generate dynamic URLs using the generator function
         current_doc_id = read_counter()
-        dynamic_urls_generator = self.url_generator(current_doc_id, 20)  # Range from 1 to 10,000,000
+        dynamic_urls_generator = self.url_generator(current_doc_id, current_doc_id + 200000)  # Range from 1 to 10,000,000
         for url in dynamic_urls_generator:
             yield scrapy.Request(url=url, callback=self.parse)
             current_doc_id += 1

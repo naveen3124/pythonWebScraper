@@ -1,11 +1,5 @@
 FROM python:3.9-slim
 
-# Set the working directory in the container
-WORKDIR /app
-
-# Copy the current directory contents into the container at /app
-COPY . /app
-
 # Install dependencies
 RUN apt-get update && apt-get install -y \
     redis-server \
@@ -13,15 +7,21 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python packages from requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
 
 # Expose the Redis port
 EXPOSE 6379
 
-# Copy the entrypoint script
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+COPY kanoon_scraper /app/kanoon_scraper
+COPY entrypoint.sh /app/entrypoint.sh
+COPY requirements.txt /app/requirements.txt
+COPY scrapy.cfg /app/scrapy.cfg
 
-# Command to run the entrypoint script
-CMD ["/entrypoint.sh"]
+RUN pip install --no-cache-dir -r /app/requirements.txt
+# Make the startup script executable
+RUN chmod +x /app/entrypoint.sh
 
+# Set the working directory
+WORKDIR /app
+
+# Set the entrypoint to the startup script
+ENTRYPOINT ["/bin/bash", "/app/entrypoint.sh"]

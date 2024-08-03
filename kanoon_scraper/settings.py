@@ -8,7 +8,6 @@
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
 # Set the logging level for the specific component to WARNING
-LOG_LEVEL = 'WARNING'
 
 BOT_NAME = "kanoon_scraper"
 
@@ -21,7 +20,7 @@ ITEM_PIPELINES = {
     'kanoon_scraper.pipelines.KanoonScraperItemPipeline': 100,
 }
 
-DOWNLOAD_DELAY = 2
+DOWNLOAD_DELAY = 10
 CONCURRENT_REQUESTS = 1
 DEPTH_LIMIT = 100
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
@@ -33,6 +32,20 @@ REDIS_URL = 'redis://localhost:6379/0'
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = True
+
+LOG_ENABLED = True
+
+# Log file location
+LOG_FILE = 'scrapy_output.log'
+
+# Log level
+LOG_LEVEL = 'INFO'
+
+# Log format
+LOG_FORMAT = '%(levelname)s: %(message)s'
+
+# Log date format
+LOG_DATEFORMAT = '%Y-%m-%d %H:%M:%S'
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
